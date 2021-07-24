@@ -26,7 +26,6 @@ function handler (UseCase, success, failure) {
   }
 }
 
-
 function isSuperAdmin(func) {
   return async (event) => {
     if (event.requestContext.authorizer.claims.superadmin) {

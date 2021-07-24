@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./test --recursive -b -t 10000"
+  },
+  "devDependencies": {
+    "mocha": "^9.0.2",
+    "sinon": "^11.1.1"
   },
   "author": "",
   "license": "ISC"
