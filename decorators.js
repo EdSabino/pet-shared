@@ -105,6 +105,20 @@ function defaultList(Model, name) {
   }
 }
 
+function defaultGet(Model, name) {
+  return {
+    execute: async ({ pathParameters }) => {
+      const result = await Model.findOne({ _id: pathParameters._id }, Model.publicFields());
+      if (!result) {
+        throw { success: false, message: `${name}_not_found` };
+      }
+      const base = { success: true };
+      base[name] = result;
+      return base;
+    }
+  }
+}
+
 function resolve(path, obj) {
   var properties = Array.isArray(path) ? path : path.split('.')
   return properties.reduce((prev, curr) => prev && prev[curr], obj)
@@ -117,5 +131,6 @@ module.exports = {
   hasPermission,
   defaultCreate,
   defaultUpdate,
-  defaultList
+  defaultList,
+  defaultGet
 }
