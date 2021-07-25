@@ -1,4 +1,5 @@
 "use strict";
+const { validationError } = require('./validation_error');
 
 function database(func, mongoose) {
   return async (args) => {
@@ -54,15 +55,67 @@ function hasPermission(func, permission, field) {
   };
 }
 
+function defaultCreate(Model) {
+  return {
+    execute: async ({ body }) => {
+      try {
+        const result = await Model.create(JSON.parse(body));
+        return { success: true, _id: result._id.toString() };
+      } catch (e) {
+        if (e.errors) {
+          throw validationError(e);
+        } else {
+          throw { success: false, message: 'unknown_error' };
+        }
+      }
+    }
+  }
+}
+
+function defaultUpdate(Model, name) {
+  return {
+    execute: async ({ body, pathParameters }) => {
+      try {
+        const result = await Model.updateOne({ _id: pathParameters._id }, JSON.parse(body));
+        if (result.ok == 0) {
+          throw { success: false, message: `${name}_not_found` };
+        }
+        return { success: true, _id: pathParameters._id };
+      } catch (e) {
+        if (e.errors) {
+          throw validationError(e);
+        } else {
+          throw { success: false, message: 'unknown_error' };
+        }
+      }
+    }
+  }
+}
+
+function defaultList(Model, name) {
+  return {
+    execute: async ({ queryStringParameters: { page } }) => {
+      try {
+        const docs = await Model.find({}, Model.publicFields(), { limit: 10, skip: page*10 });
+        return { success: true, docs, paginate: { page: parseInt(page), count: 10 }};
+      } catch (e) {
+        throw { success: false, message: `${name}_not_found` };
+      }
+    }
+  }
+}
+
 function resolve(path, obj) {
   var properties = Array.isArray(path) ? path : path.split('.')
   return properties.reduce((prev, curr) => prev && prev[curr], obj)
 }
 
-
 module.exports = {
   database,
   handler,
   isSuperAdmin,
-  hasPermission
+  hasPermission,
+  defaultCreate,
+  defaultUpdate,
+  defaultList
 }
