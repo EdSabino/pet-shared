@@ -59,9 +59,9 @@ const returnBody = body => body;
 
 function defaultCreate(Model, prepare = returnBody) {
   return {
-    execute: async ({ body }) => {
+    execute: async ({ body, requestContext }) => {
       try {
-        const result = await Model.create(prepare(JSON.parse(body)));
+        const result = await Model.create(prepare(JSON.parse(body), requestContext));
         return { success: true, _id: result._id.toString() };
       } catch (e) {
         if (e.errors) {
