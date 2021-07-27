@@ -78,7 +78,7 @@ function defaultUpdate(Model, name, prepare = returnBody) {
   return {
     execute: async ({ body, pathParameters }) => {
       try {
-        const result = await Model.updateOne({ _id: pathParameters._id }, prepare(JSON.parse(body)));
+        const result = await Model.updateOne({ _id: pathParameters._id }, prepare(JSON.parse(body), pathParameters));
         if (result.ok == 0) {
           throw { success: false, message: `${name}_not_found` };
         }
