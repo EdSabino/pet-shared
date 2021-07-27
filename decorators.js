@@ -55,11 +55,13 @@ function hasPermission(func, permission, field) {
   };
 }
 
-function defaultCreate(Model) {
+const returnBody = body => body;
+
+function defaultCreate(Model, prepare = returnBody) {
   return {
     execute: async ({ body }) => {
       try {
-        const result = await Model.create(JSON.parse(body));
+        const result = await Model.create(prepare(JSON.parse(body)));
         return { success: true, _id: result._id.toString() };
       } catch (e) {
         if (e.errors) {
