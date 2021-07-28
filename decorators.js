@@ -1,6 +1,13 @@
 "use strict";
 const { validationError } = require('./validation_error');
 
+function parseUser(func) {
+  return async (args) => {
+    args.requestContext.authorizer.claims = JSON.parse(args.requestContext.authorizer.stringKey);
+    return func(args);
+  };
+}
+
 function database(func, mongoose) {
   return async (args) => {
     console.log('Mongo trying');
@@ -135,5 +142,6 @@ module.exports = {
   defaultCreate,
   defaultUpdate,
   defaultList,
-  defaultGet
+  defaultGet,
+  parseUser
 }
