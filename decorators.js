@@ -29,6 +29,7 @@ function handler (UseCase, success, failure) {
 
 function isSuperAdmin(func) {
   return async (event) => {
+    console.log(event.requestContext.authorizer)
     if (event.requestContext.authorizer.claims.superadmin) {
       return await func(event);
     }
