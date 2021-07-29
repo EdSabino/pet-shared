@@ -74,6 +74,8 @@ function defaultCreate(Model, prepare = returnBody) {
       } catch (e) {
         if (e.errors) {
           throw validationError(e);
+        } else if (typeof e === 'object') {
+          throw e;
         } else {
           throw { success: false, message: 'unknown_error' };
         }
