@@ -69,7 +69,7 @@ function defaultCreate(Model, prepare = returnBody) {
   return {
     execute: async ({ body, requestContext }) => {
       try {
-        const result = await Model.create(prepare(JSON.parse(body), requestContext));
+        const result = await Model.create(await prepare(JSON.parse(body), requestContext));
         return { success: true, _id: result._id.toString() };
       } catch (e) {
         if (e.errors) {
