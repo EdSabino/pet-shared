@@ -23,12 +23,20 @@ function handler (UseCase, success, failure) {
       const res = await UseCase.execute(event);
       return {
         statusCode: success,
-        body: JSON.stringify(res)
+        body: JSON.stringify(res),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true
+        }
       }
     } catch (err) {
       return {
         statusCode: failure,
-        body: JSON.stringify(err)
+        body: JSON.stringify(err),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true
+        }
       }
     }
   }
