@@ -126,6 +126,7 @@ function defaultList(Model, name) {
         }));
         return { success: true, docs, paginate: { page: parseInt(page), count, size }};
       } catch (e) {
+        console.log(e);
         throw { success: false, message: `${name}_not_found` };
       }
     }
