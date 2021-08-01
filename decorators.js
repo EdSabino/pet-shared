@@ -117,7 +117,7 @@ function defaultList(Model, name) {
     execute: async ({ queryStringParameters: { page, size } }) => {
       try {
         const docs = await Model.find({}, Model.publicFields(), { limit: size, skip: page*10 });
-        const count = await Model.countDocuments({}, (err, count) => Promise((resolve, reject) => {
+        const count = await Model.countDocuments({}, (err, count) => new Promise((resolve, reject) => {
           if (err) {
             reject(err);
           }
