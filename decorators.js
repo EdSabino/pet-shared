@@ -114,10 +114,17 @@ function defaultUpdate(Model, name, prepare = returnBody) {
 
 function defaultList(Model, name) {
   return {
-    execute: async ({ queryStringParameters: { page } }) => {
+    execute: async ({ queryStringParameters: { page, size } }) => {
       try {
-        const docs = await Model.find({}, Model.publicFields(), { limit: 10, skip: page*10 });
-        return { success: true, docs, paginate: { page: parseInt(page), count: 10 }};
+        const docs = await Model.find({}, Model.publicFields(), { limit: size, skip: page*10 });
+        const count = await Model.countDocuments({}, (err, count) => Promise((resolve, reject) => {
+          if (err) {
+            reject(err);
+          }
+
+          resolve(count);
+        }));
+        return { success: true, docs, paginate: { page: parseInt(page), count, size }};
       } catch (e) {
         throw { success: false, message: `${name}_not_found` };
       }
