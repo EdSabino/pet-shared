@@ -102,6 +102,7 @@ function defaultUpdate(Model, name, prepare = returnBody) {
         }
         return { success: true, _id: pathParameters._id };
       } catch (e) {
+        console.log(e)
         if (e.errors) {
           throw validationError(e);
         } else {
