@@ -1,11 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "lib": ["es2017", "dom"],
+    "target": "es2017",
     "module": "commonjs",
     "declaration": true,
     "outDir": "./lib",
-    "strict": true
+    "strict": true,
+    "noImplicitThis": false
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__/*"]
+  "include": [
+    "src",
+    "typings"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "**/__tests__/*"
+  ]
 }

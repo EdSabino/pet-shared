@@ -5,13 +5,21 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha ./test --recursive -b -t 10000",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "devDependencies": {
+    "@types/node": "^16.9.1",
     "mocha": "^9.0.2",
     "sinon": "^11.1.1",
     "typescript": "^4.4.3"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^6.0.6"
+  }
 }
