@@ -1,8 +1,8 @@
 {
   "name": "@eduardoaikin/pet-shared",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "mocha ./test --recursive -b -t 10000",
     "build": "tsc",
