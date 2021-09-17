@@ -6,11 +6,13 @@
     "declaration": true,
     "outDir": "./lib",
     "strict": true,
-    "noImplicitThis": false
+    "noImplicitThis": false,
+    "experimentalDecorators": true
   },
   "include": [
     "src",
-    "typings"
+    "typings",
+    "test"
   ],
   "exclude": [
     "node_modules",

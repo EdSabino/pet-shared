@@ -54,8 +54,8 @@ export function hasPermission(permission: string, field: string) {
       if (user.superadmin || (permissions && permissions.find((perm: string) => perm === permission))) {
         return originalMethod.apply(this, [event, context]);
       }
-
-      return {
+      
+      throw {
         statusCode: 401,
         body: { success: false, message: 'unauthorized' }
       }
@@ -63,6 +63,7 @@ export function hasPermission(permission: string, field: string) {
     return descriptor;
   };
 }
+
 export function wrapper () {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
@@ -80,7 +81,6 @@ export function wrapper () {
           }
         }
       } catch (e: any) {
-        console.log(e)
         return {
           statusCode: e.statusCode || 500,
           body: JSON.stringify(e.body || { success: false, message: 'unkown_error'}),
