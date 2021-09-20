@@ -10,6 +10,22 @@ function resolve(path: any, obj: any) {
   return properties.reduce((prev: any, curr: any, _: number, __: any[]) => prev && prev[curr], obj)
 }
 
+interface Injects {
+  model: any,
+  services: Record<any, any>
+}
+
+export function inject(injects: Injects) {
+  return (constructor: Function) => {
+    const services: Record<any, any> = {};
+    Object.keys(injects.services).forEach(key => {
+      services[key] = new injects.services[key]();
+    });
+    constructor.prototype.services = services;
+    constructor.prototype.model = injects.model;
+  }
+}
+
 export function database() {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
