@@ -241,3 +241,31 @@ export function defaultList(name: string) {
     return descriptor;
   };
 }
+
+export function action(parse: boolean) {
+  return (_: any, __: string | symbol, descriptor: any) => {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = async function (event: any, context: any) {
+      try {
+        const body = parse ? JSON.parse(event.body) : {};
+        return { 
+          statusCode: 200,
+          body: {
+            ...await originalMethod.apply(this, [event, context, { body }]),
+            success: true
+          }
+        };
+      } catch (e: any) {
+        if (e.errors) {
+          validationError(e);
+        } else if (typeof e === 'object') {
+          throw e;
+        } else {
+          throw {};
+        }
+      }
+    }
+    return descriptor;
+  };
+}
