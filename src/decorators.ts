@@ -1,3 +1,6 @@
+import { plainToClass } from 'class-transformer';
+import { validateOrReject, ValidationError } from 'class-validator';
+
 function validationError(err: any) {
   const fields: any = {};
   const errors = Object.keys(err.errors);
@@ -46,9 +49,9 @@ export function isSuperAdmin() {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       if (event.requestContext.authorizer.claims.superadmin) {
-        return originalMethod.apply(this, [event, context]);
+        return originalMethod.apply(this, [event, context, extraArgs]);
       }
 
       throw {
@@ -64,11 +67,11 @@ export function hasPermission(permission: string, field: string) {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       const user = event.requestContext.authorizer.claims;
       const permissions = user.permissions[resolve(field, event)];
       if (user.superadmin || (permissions && permissions.find((perm: string) => perm === permission))) {
-        return originalMethod.apply(this, [event, context]);
+        return originalMethod.apply(this, [event, context, extraArgs]);
       }
       
       throw {
@@ -84,9 +87,9 @@ export function wrapper () {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       try {
-        const result = await originalMethod.apply(this, [event, context]);
+        const result = await originalMethod.apply(this, [event, context, extraArgs]);
 
         return {
           statusCode: result.statusCode,
@@ -115,9 +118,9 @@ export function parseUser() {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       event.requestContext.authorizer.claims = JSON.parse(event.requestContext.authorizer.stringKey);
-      return originalMethod.apply(this, [event, context]);
+      return originalMethod.apply(this, [event, context, extraArgs]);
     };
 
     return descriptor;
@@ -128,9 +131,9 @@ export function defaultCreate(hasFunction: boolean) {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       try {
-        const body = hasFunction ? await originalMethod.apply(this, [event, context]) : JSON.parse(event.body);
+        const body = hasFunction ? await originalMethod.apply(this, [event, context, extraArgs]) : JSON.parse(event.body);
         const result = await this.model.create(body);
         return { 
           statusCode: 201,
@@ -156,9 +159,9 @@ export function defaultUpdate(hasFunction: boolean, name: string) {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       try {
-        const body = hasFunction ? await originalMethod.apply(this, [event, context]) : JSON.parse(event.body);
+        const body = hasFunction ? await originalMethod.apply(this, [event, context, extraArgs]) : JSON.parse(event.body);
         const result = await this.model.updateOne({ _id: event.pathParameters._id }, {
           $set: body
         });
@@ -192,8 +195,8 @@ export function defaultGet(name: string) {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
-      await originalMethod.apply(this, [event, context]);
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
+      await originalMethod.apply(this, [event, context, extraArgs]);
       const result = await this.model.findOne({ _id: event.pathParameters._id }, this.model.publicFields());
       if (!result) {
         throw {
@@ -215,10 +218,10 @@ export function defaultList(name: string) {
   return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       const { queryStringParameters: { page, size } } = event;
       try {
-        await originalMethod.apply(this, [event, context]);
+        await originalMethod.apply(this, [event, context, extraArgs]);
         const docs = await this.model.find({}, this.model.publicFields(), { limit: parseInt(size), skip: page*10 });
         const count = await this.model.countDocuments({}, (err: any, count: number) => new Promise((resolve, reject) => {
           if (err) {
@@ -242,17 +245,16 @@ export function defaultList(name: string) {
   };
 }
 
-export function action(parse: boolean) {
-  return (_: any, __: string | symbol, descriptor: any) => {
+export function action() {
+  return (_: any, __: string | symbol, descriptor: any, extraArgs: any) => {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (event: any, context: any) {
       try {
-        const body = parse ? JSON.parse(event.body) : {};
         return { 
           statusCode: 200,
           body: {
-            ...await originalMethod.apply(this, [event, context, { body }]),
+            ...await originalMethod.apply(this, [event, context, extraArgs]),
             success: true
           }
         };
@@ -265,6 +267,39 @@ export function action(parse: boolean) {
           throw {};
         }
       }
+    }
+    return descriptor;
+  };
+}
+
+
+export function body(type: any) {
+  return (_: any, __: string | symbol, descriptor: any) => {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
+      try {
+        extraArgs.body = plainToClass(type, JSON.parse(event.body));
+        await validateOrReject(extraArgs.body);
+      } catch (e) {
+        const errors: any[] = [];
+        (e as ValidationError[]).forEach((err: ValidationError) => {
+          errors.push({
+            field: err.property,
+            failures: Object.keys(err.constraints || {})
+          })  
+        });
+
+        throw {
+          statusCode: 400,
+          body: {
+            success: false,
+            errors
+          }
+        }
+      }
+
+      return originalMethod.apply(this, [event, context, extraArgs]);
     }
     return descriptor;
   };
