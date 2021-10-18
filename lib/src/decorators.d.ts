@@ -12,6 +12,6 @@ export declare function defaultCreate(hasFunction: boolean): (_: any, __: string
 export declare function defaultUpdate(hasFunction: boolean, name: string): (_: any, __: string | symbol, descriptor: any) => any;
 export declare function defaultGet(name: string): (_: any, __: string | symbol, descriptor: any) => any;
 export declare function defaultList(name: string): (_: any, __: string | symbol, descriptor: any) => any;
-export declare function action(): (_: any, __: string | symbol, descriptor: any, extraArgs: any) => any;
+export declare function action(): (_: any, __: string | symbol, descriptor: any) => any;
 export declare function body(type: any): (_: any, __: string | symbol, descriptor: any) => any;
 export {};

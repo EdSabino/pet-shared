@@ -246,10 +246,10 @@ export function defaultList(name: string) {
 }
 
 export function action() {
-  return (_: any, __: string | symbol, descriptor: any, extraArgs: any) => {
+  return (_: any, __: string | symbol, descriptor: any) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (event: any, context: any) {
+    descriptor.value = async function (event: any, context: any, extraArgs: any) {
       try {
         return { 
           statusCode: 200,
